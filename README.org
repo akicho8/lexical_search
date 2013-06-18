@@ -1,0 +1,51 @@
+#+OPTIONS: toc:nil num:nil author:nil creator:nil \n:nil |:t
+#+OPTIONS: @:t ::t ^:t -:t f:t *:t <:t
+
+* ActiveRecord用のGoogle風簡易検索
+
+  - [[https://travis-ci.org/akicho8/lexical_search][Travis]]: [[https://travis-ci.org/akicho8/lexical_search.png]]
+  - [[https://gemnasium.com/akicho8/lexical_search/][Gemnasium]]: [[https://gemnasium.com/akicho8/lexical_search.png]]
+  - [[https://codeclimate.com/github/akicho8/lexical_search][Code Climat]]: [[https://codeclimate.com/github/akicho8/lexical_search.png]]
+
+  : User.search("a").collect(&:name) # => ["alice", "carol"]
+
+** 簡単な使い方
+
+   モデルに以下を追加
+
+   : scope :search, proc{|q|where(LexicalSearch::ArelBuilder.new(self, q).run)}
+
+   あとは search スコープで検索キーワードを入れると該当するレコードが出てくる
+
+   : AR.search("a") # => #<ActiveRecord::Relation [#<User id: 1, name: "alice">]>
+
+** 構文・演算子
+
+   |--------------+-------------------------+--------------------------|
+   | 構文・演算子 | 意味                    | 備考                     |
+   |--------------+-------------------------+--------------------------|
+   | a            | a を含む                | 文字列型カラムが対象     |
+   | -a           | a を含まない            |                          |
+   | a b          | a と b を含む           | a AND b と書いてもいい   |
+   | a or b       | a または b を含む       |                          |
+   | ( )          | 優先度の確定            | 普通の式と同じ           |
+   | blank:x      | x カラムが空            | 空は NULL または空文字列 |
+   | present:x    | x カラムが空ではない    |                          |
+   | x==1         | x カラムが 1            |                          |
+   | x!=1         | x カラムが 1 ではない   |                          |
+   | x=@y         | x カラムに y を含む     |                          |
+   | x!@y         | x カラムに y を含まない |                          |
+   | x>=1         | x カラムが 1 以上       |                          |
+   | x<=1         | x カラムが 1 以下       |                          |
+   | x<1          | x カラムが 1 未満       |                          |
+   | x>1          | x カラムが 1 より大きい |                          |
+   |--------------+-------------------------+--------------------------|
+
+** 例
+
+   |-------------------+-------------------------------|
+   | クエリ            | 意味                          |
+   |-------------------+-------------------------------|
+   | (a OR b) (c OR d) | aまたはb かつ cまたはd を含む |
+   | (a b) OR (c d)    | aとb または cとd を含む       |
+   |-------------------+-------------------------------|
