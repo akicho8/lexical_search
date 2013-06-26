@@ -5,6 +5,8 @@ require_relative "parser"
 
 module LexicalSearch
   class Node
+    OPERATIONS_ORDER = ["OR", "AND"] # 優先度の低い順 + *。+ - のように同じ優先順位の場合ここに並べるのは間違い
+
     include Helper
 
     def self.translate(string, options = {})
@@ -32,13 +34,14 @@ module LexicalSearch
       @expr = @left = @right = nil
     end
 
+    # 最後の ")" の位置
     def braket_last_position
       last_position = nil
       stack = []
       @source_expr.each.with_index{|item, index|
         case item
         when "("
-          stack.push(index) # スタックの必要はなかった
+          stack.push(index) # スタックの必要はないけど
         when ")"
           stack.pop
           if stack.empty?
@@ -61,11 +64,7 @@ module LexicalSearch
     end
 
     def build
-      # 最初と最後の括弧が対応している場合は繰り返し括弧を外す。
-      # "( 1 AND 2 ) OR ( 3 AND 4 )" の場合などは対応してないので外してはいけない。
-      while has_unnecessary_brakect?
-        @source_expr = @source_expr[1..-2]
-      end
+      remove_around_brackets
 
       if @source_expr.size == 1
         if value?(@source_expr.first)
@@ -76,10 +75,15 @@ module LexicalSearch
         end
       end
 
-      @operations_order = ["OR", "AND"] # 優先度の低い順 + *。+ - のように同じ優先順位の場合ここに並べるのは間違い
+      i = operator_index
+      build_chidren(@source_expr[i], @source_expr.take(i), @source_expr.drop(i.next))
+    end
+
+    # () の深さを考慮しつつ同じ深さで OR または AND の位置を探す
+    def operator_index
       nest = 0
       found_index = nil
-      most_low_priority = @operations_order.size
+      most_low_priority = OPERATIONS_ORDER.size
       @source_expr.each_with_index{|ch, index|
         case ch
         when "(" then nest += 1
@@ -88,7 +92,7 @@ module LexicalSearch
         if nest >= 1
           next
         end
-        if prio = @operations_order.index(ch.upcase)
+        if prio = OPERATIONS_ORDER.index(ch.upcase)
           if prio < most_low_priority # <= だと後ろにあるものほど優先される
             most_low_priority = prio
             found_index = index
@@ -98,7 +102,15 @@ module LexicalSearch
       unless found_index
         raise SyntaxError, "#{@source_expr}"
       end
-      build_chidren(@source_expr[found_index], @source_expr.take(found_index), @source_expr.drop(found_index.next))
+      found_index
+    end
+
+    # 最初と最後の括弧が対応している場合は繰り返し括弧を外す。
+    # "( 1 AND 2 ) OR ( 3 AND 4 )" の場合などは対応してないので外してはいけない。
+    def remove_around_brackets
+      while has_unnecessary_brakect?
+        @source_expr = @source_expr[1..-2]
+      end
     end
 
     def build_chidren(new_expr, left_expr, right_expr)

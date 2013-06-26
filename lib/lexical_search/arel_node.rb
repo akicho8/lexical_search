@@ -16,46 +16,73 @@ module LexicalSearch
       "<=" => {:arel_method => :lteq,           :wildify => false, :with_not_null => false},
     }
 
+    UnionRegexp = Regexp.union(*OperatorTable.keys.sort_by{|key|-key.size}.collect{|str|Regexp.escape(str)})
+
     #
     # 中置記法の要領で、Arelでの条件を作っていく
     #
     def to_where_scoped
       if @left && @right
-        case @expr.downcase
-        when "and"
-          Arel::Nodes::Grouping.new(Arel::Nodes::And.new([@left.send(__method__), @right.send(__method__)]))
-        when "or"
-          Arel::Nodes::Grouping.new(Arel::Nodes::Or.new(@left.send(__method__), @right.send(__method__)))
-        else
-          raise SyntaxError, @expr
-        end
+        method("build_of_#{@expr.downcase}").call
       else
-        union_regexp = Regexp.union(*OperatorTable.keys.sort_by{|key|-key.size}.collect{|str|Regexp.escape(str)})
         case
         when md = @expr.match(/\A(blank|present):(?:(\w+)\.)?(\w+)/)
-          method, table, column_name = md.captures
-          assert_valid_access(column_name)
-          send("_process_#{method}", table, column_name)
-        when md = @expr.match(/\A(?:(\w+)\.)?(\w+)(#{union_regexp})(.*)/)
-          table, column_name, operator, value = md.captures
-          assert_valid_access(column_name)
-          info = OperatorTable[operator]
-          value = phrase_content(value)
-          wheres = nil
-          if info[:wildify]
-            value = wildify(value)
-          end
-          wheres = column_at(table, column_name).send(info[:arel_method], value)
-          if info[:with_not_null]
-            wheres = wheres.and(column_at(table, column_name).not_eq(nil))
-          end
-          wheres
+          blank_or_present_expr(*md.captures)
+        when md = @expr.match(/\A(?:(\w+)\.)?(\w+)(#{UnionRegexp})(.*)/)
+          operator_match(*md.captures)
         when md = @expr.match(/\A-(.*)/)
-          does_not_match_all(md.captures.first)
+          does_not_match_all(*md.captures)
         else
           matches_any
         end
       end
+    end
+
+    # マッチする文字列がフレーズなら囲みを外して部分一致用の文字列を返す
+    #
+    # @example
+    #   wildify("a")     #=> "%a%"
+    #   wildify("'a b'") #=> "%a b%"
+    #
+    def wildify(str)
+      str = phrase_content(str)
+      if @options[:adapter]
+        str = @options[:adapter].escaped_query(str)
+      end
+      "%#{str}%"
+    end
+
+    private
+
+    # And Or はそれぞれ引数が異なるので注意
+    def build_of_and
+      Arel::Nodes::Grouping.new(Arel::Nodes::And.new([@left.to_where_scoped, @right.to_where_scoped]))
+    end
+
+    def build_of_or
+      Arel::Nodes::Grouping.new(Arel::Nodes::Or.new(@left.to_where_scoped, @right.to_where_scoped))
+    end
+
+    # present:x と blank:x 構文
+    def blank_or_present_expr(method, table, column_name)
+      assert_valid_access(column_name)
+      method("_process_#{method}").call(table, column_name)
+    end
+
+    # x==1 などの構文
+    def operator_match(table, column_name, operator, value)
+      assert_valid_access(column_name)
+      info = OperatorTable[operator]
+      value = phrase_content(value)
+      wheres = nil
+      if info[:wildify]
+        value = wildify(value)
+      end
+      wheres = column_at(table, column_name).send(info[:arel_method], value)
+      if info[:with_not_null]
+        wheres = wheres.and(column_at(table, column_name).not_eq(nil))
+      end
+      wheres
     end
 
     #
@@ -105,20 +132,6 @@ module LexicalSearch
       Arel::Nodes::Grouping.new column_at(table, column_name).not_eq("").and(column_at(table, column_name).not_eq(nil))
     end
 
-    # マッチする文字列がフレーズなら囲みを外して部分一致用の文字列を返す
-    #
-    # @example
-    #   wildify("a")     #=> "%a%"
-    #   wildify("'a b'") #=> "%a b%"
-    #
-    def wildify(str)
-      str = phrase_content(str)
-      if @options[:adapter]
-        str = @options[:adapter].escaped_query(str)
-      end
-      "%#{str}%"
-    end
-
     # フレーズの中身を返す
     #
     # @example
@@ -134,6 +147,7 @@ module LexicalSearch
 
     # 指定のカラムの構造体を返す
     #
+    # @example
     #   column_at(table, :name) #=> #<struct Arel::Attributes::String relation=#<Arel::Table:0x1035194e8 @columns=[...]
     #
     def column_at(table, name)
