@@ -1,11 +1,11 @@
 #+OPTIONS: toc:nil num:nil author:nil creator:nil \n:nil |:t
 #+OPTIONS: @:t ::t ^:t -:t f:t *:t <:t
 
-* ActiveRecord用のGoogle風簡易検索
+* Google風かんたん検索(AR用)
 
   - [[https://travis-ci.org/akicho8/lexical_search][Travis]]: [[https://travis-ci.org/akicho8/lexical_search.png]]
   - [[https://gemnasium.com/akicho8/lexical_search/][Gemnasium]]: [[https://gemnasium.com/akicho8/lexical_search.png]]
-  - [[https://codeclimate.com/github/akicho8/lexical_search][Code Climat]]: [[https://codeclimate.com/github/akicho8/lexical_search.png]]
+  - [[https://codeclimate.com/github/akicho8/lexical_search][Code Climate]]: [[https://codeclimate.com/github/akicho8/lexical_search.png]]
 
 ** 簡単な使い方
 
@@ -13,7 +13,7 @@
 
    : scope :search, proc{|q|where(LexicalSearch::ArelBuilder.new(self, q).run)}
 
-   適当に検索
+   検索
 
    : AR.search("a") # => #<ActiveRecord::Relation [#<User id: 1, name: "alice">]>
 
