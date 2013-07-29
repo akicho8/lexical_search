@@ -14,7 +14,7 @@ ActiveRecord::Schema.define do
 end
 
 class Article < ActiveRecord::Base
-  scope :quick_search, proc{|query|where(LexicalSearch::ArelBuilder.new(scoped, query, :only => :name).run)}
+  scope :quick_search, proc{|query|where(LexicalSearch::ArelBuilder.new(self, query, :only => :name).run)}
 end
 
 describe LexicalSearch::ArelBuilder  do
@@ -66,15 +66,15 @@ describe LexicalSearch::ArelBuilder  do
   end
 
   it "blank:構文で秘密のカラムにアクセスされたら例外が来る - forbidden_access" do
-    proc{LexicalSearch::ArelBuilder.new(Article.scoped, "blank:password", :only => :name, :secure => true).run}.should raise_error(LexicalSearch::ForbiddenAccess)
+    proc{LexicalSearch::ArelBuilder.new(Article, "blank:password", :only => :name, :secure => true).run}.should raise_error(LexicalSearch::ForbiddenAccess)
   end
 
   it "デフォルトは秘密のカラムにアクセスし放題 - allow_all" do
     # TODO: minitest の assert_nothing_raised{} 相当は？
-    LexicalSearch::ArelBuilder.new(Article.scoped, "blank:password", :only => :name).run.should be_present
+    LexicalSearch::ArelBuilder.new(Article, "blank:password", :only => :name).run.should be_present
   end
 
   it "入力要素の展開 - expand_filter" do
-    LexicalSearch::ArelBuilder.new(Article.scoped, "c:x", :only => :name, :expand_filter => {/^c:/ => "name=="}).run.to_sql.should == %["articles"."name" = 'x']
+    LexicalSearch::ArelBuilder.new(Article, "c:x", :only => :name, :expand_filter => {/^c:/ => "name=="}).run.to_sql.should == %["articles"."name" = 'x']
   end
 end

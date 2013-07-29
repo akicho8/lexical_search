@@ -86,7 +86,7 @@ describe LexicalSearch::ArelNode do
   private
 
   def assert_sql(expected_sql, query, options = {})
-    object = LexicalSearch::ArelNode.build(LexicalSearch::Parser.parse(query), options.merge(:scoped => Article.scoped, :target_columns => [:name], :secure => false, :adapter => LexicalSearch::Adapter::MySQL))
+    object = LexicalSearch::ArelNode.build(LexicalSearch::Parser.parse(query), options.merge(:scoped => Article, :target_columns => [:name], :secure => false, :adapter => LexicalSearch::Adapter::MySQL))
     expected_sql = expected_sql.gsub(/\s*\n\s*/m, " ")
     object.to_where_scoped.to_sql.should == expected_sql
   end

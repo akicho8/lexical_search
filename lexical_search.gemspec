@@ -29,8 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "yard-rubicle"
   spec.add_development_dependency "tapp"
   spec.add_development_dependency "pry"
+  spec.add_development_dependency "sqlite3"
 
-  spec.add_dependency "activesupport", "< 4.0.0"
-  spec.add_dependency "activerecord", "< 4.0.0"
-  spec.add_dependency "sqlite3", "< 4.0.0"
+  spec.add_dependency "rails"
 end
