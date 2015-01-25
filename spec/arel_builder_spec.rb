@@ -24,11 +24,11 @@ describe LexicalSearch::ArelBuilder  do
   end
 
   it "クラスメソッドでのAND検索 - scope_and" do
-    Article.quick_search("a b").to_sql.squish.should == %[SELECT "articles".* FROM "articles" WHERE ((("articles"."name" LIKE '%a%') AND ("articles"."name" LIKE '%b%')))].squish
+    Article.quick_search("a b").to_sql.squish.should == %[SELECT "articles".* FROM "articles" WHERE (("articles"."name" LIKE '%a%') AND ("articles"."name" LIKE '%b%'))].squish
   end
 
   it "クラスメソッドでの否定を含むAND検索 - scope_not" do
-    Article.quick_search("a b -c -d").to_sql.squish.should == %[SELECT "articles".* FROM "articles" WHERE ((("articles"."name" LIKE '%a%') AND (("articles"."name" LIKE '%b%') AND ((("articles"."name" NOT LIKE '%c%' OR "articles"."name" IS NULL)) AND (("articles"."name" NOT LIKE '%d%' OR "articles"."name" IS NULL))))))]
+    Article.quick_search("a b -c -d").to_sql.squish.should == %[SELECT "articles".* FROM "articles" WHERE (("articles"."name" LIKE '%a%') AND (("articles"."name" LIKE '%b%') AND (("articles"."name" NOT LIKE '%c%' OR "articles"."name" IS NULL) AND ("articles"."name" NOT LIKE '%d%' OR "articles"."name" IS NULL))))]
   end
 
   it "DBに値を入れてみて実際正しくマッチするか？ - real_find" do

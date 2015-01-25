@@ -33,7 +33,7 @@ describe LexicalSearch::ArelNode do
 
   # NOT LIKE の場合、NULL のカラムは NOT NULL の対象にならないため、驚きをなくすには IS NULL のチェックも必要
   it "sql_not_like" do
-    assert_sql %[(("articles"."name" NOT LIKE '%1%' OR "articles"."name" IS NULL))], "-1"
+    assert_sql %[("articles"."name" NOT LIKE '%1%' OR "articles"."name" IS NULL)], "-1"
   end
 
   # いろいろ正しい
@@ -45,7 +45,7 @@ describe LexicalSearch::ArelNode do
     assert_sql %[((("articles"."name" LIKE '%1%') AND ("articles"."name" LIKE '%2%')) OR (("articles"."name" LIKE '%3%') AND ("articles"."name" LIKE '%4%')))], "1 2 OR 3 4"
     assert_sql %[(("articles"."name" LIKE '%1%') AND ((("articles"."name" LIKE '%2%') OR ("articles"."name" LIKE '%3%')) AND ("articles"."name" LIKE '%4%')))], "1 (2 OR 3) 4"
 
-    assert_sql %[(("articles"."name" LIKE '%攻略%') AND ((("articles"."name" LIKE '%モンハン%') OR ("articles"."name" LIKE '%MHP%')) AND (("articles"."name" LIKE '%Wiki%') AND (("articles"."name" NOT LIKE '%ブログ%' OR "articles"."name" IS NULL)))))], "攻略 (モンハン OR MHP) Wiki -ブログ"
+    assert_sql %[(("articles"."name" LIKE '%攻略%') AND ((("articles"."name" LIKE '%モンハン%') OR ("articles"."name" LIKE '%MHP%')) AND (("articles"."name" LIKE '%Wiki%') AND ("articles"."name" NOT LIKE '%ブログ%' OR "articles"."name" IS NULL))))], "攻略 (モンハン OR MHP) Wiki -ブログ"
   end
 
   # 「指定のカラムが空」の指定ができる
