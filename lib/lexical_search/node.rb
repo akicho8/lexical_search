@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 require_relative "helper"
 require_relative "parser"
 
@@ -38,7 +37,7 @@ module LexicalSearch
     def braket_last_position
       last_position = nil
       stack = []
-      @source_expr.each.with_index{|item, index|
+      @source_expr.each.with_index do |item, index|
         case item
         when "("
           stack.push(index) # スタックの必要はないけど
@@ -49,7 +48,7 @@ module LexicalSearch
             break
           end
         end
-      }
+      end
       unless last_position
         raise SyntaxError, "#{@source_expr}"
       end
@@ -84,7 +83,7 @@ module LexicalSearch
       nest = 0
       found_index = nil
       most_low_priority = OPERATIONS_ORDER.size
-      @source_expr.each_with_index{|ch, index|
+      @source_expr.each_with_index do |ch, index|
         case ch
         when "(" then nest += 1
         when ")" then nest -= 1
@@ -98,7 +97,7 @@ module LexicalSearch
             found_index = index
           end
         end
-      }
+      end
       unless found_index
         raise SyntaxError, "#{@source_expr}"
       end
@@ -119,7 +118,7 @@ module LexicalSearch
       @right = self.class.build(right_expr, @options)
     end
 
-    # 後行順序訪問 / 帰りがけ順 (postorder traversal)
+    # 後行順序訪問 / 帰りがけ順 (postorder traversal) (1 2 +)
     def traverse_tree_postorder
       list = []
       list << braket("(")
@@ -134,7 +133,7 @@ module LexicalSearch
       list.compact
     end
 
-    # 中間順序訪問 / 通りがけ順 (inorder traversal)
+    # 中間順序訪問 / 通りがけ順 (inorder traversal)  (1 + 2)
     def traverse_tree_inorder
       list = []
       list << braket("(")
@@ -149,7 +148,7 @@ module LexicalSearch
       list.compact
     end
 
-    # 先行順序訪問 / 行きがけ順 (preorder traversal)
+    # 先行順序訪問 / 行きがけ順 (preorder traversal)  (+ 1 2)
     def traverse_tree_preorder
       list = []
       list << braket("(")

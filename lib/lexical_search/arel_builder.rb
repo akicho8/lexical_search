@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 require_relative "errors"
 require_relative "adapter"
 require_relative "arel_node"
@@ -57,7 +56,9 @@ module LexicalSearch
     end
 
     def default_columns
-      @scoped.columns.find_all{|column|column.text?}.collect(&:name).collect(&:to_sym) - ignore_column_names
+      @scoped.columns.find_all{|column|
+        column.type == :string || column.type == :text # ActiveRecord 4.2 では text? がなくなっていた。
+      }.collect(&:name).collect(&:to_sym) - ignore_column_names
     end
 
     # ショートカットの指定に沿って入力文字列を置換する
@@ -71,12 +72,12 @@ module LexicalSearch
     #   "c:ゲーム" => "category==ゲーム"
     #
     def expand_filter(elements)
-      elements.collect{|str|
+      elements.collect do |str|
         if found = @options[:expand_filter].find{|key, value|str.match(key)}
           str = str.gsub(*found)
         end
         str
-      }
+      end
     end
   end
 end

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 require_relative "helper"
 
 module LexicalSearch
@@ -41,7 +40,7 @@ module LexicalSearch
     # "(" ")" の左右には必ずスペースを入れる
     # エスケープしている場合は除く
     def braket_space_around(str)
-      str.gsub(/(.)?([()])/){
+      str.gsub(/(.)?([()])/) {
         prefix, target = Regexp.last_match.captures
         if prefix == "\\"
           [prefix, target].join
@@ -54,7 +53,7 @@ module LexicalSearch
     # 値と値の並びには AND が省略されているので入れる
     def insert_and_operator(elems)
       store = []
-      elems.each_with_index{|elem, index|
+      elems.each_with_index do |elem, index|
         store << elem
         if next_elem = elems[index.next]
           if [
@@ -66,7 +65,7 @@ module LexicalSearch
             store << "AND"
           end
         end
-        }
+      end
       store
     end
 

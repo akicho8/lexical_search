@@ -98,7 +98,7 @@ module LexicalSearch
     # 「カラムのどれかに含まれていればよい」のでOR条件の連結
     #
     def matches_any
-      Arel::Nodes::Grouping.new @options[:target_columns].inject(nil){|memo, target_key|
+      Arel::Nodes::Grouping.new @options[:target_columns].inject(nil) {|memo, target_key|
         match = column_at(nil, target_key).matches(wildify(@expr))
         next match unless memo
         memo.or(match)
@@ -109,7 +109,7 @@ module LexicalSearch
     # 「カラムのすべてに含まれてない」のでAND条件の連結
     #
     def does_not_match_all(match_str)
-      Arel::Nodes::Grouping.new @options[:target_columns].inject(nil){|memo, target_key|
+      Arel::Nodes::Grouping.new @options[:target_columns].inject(nil) {|memo, target_key|
         match = column_at(nil, target_key).does_not_match(wildify(match_str)).or(column_at(nil, target_key).eq(nil))
         next match unless memo
         memo.and(match)
