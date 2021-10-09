@@ -1,6 +1,3 @@
-#+OPTIONS: toc:nil num:nil author:nil creator:nil \n:nil |:t
-#+OPTIONS: @:t ::t ^:t -:t f:t *:t <:t
-
 * Google風かんたん検索(AR用)
 
   - [[https://travis-ci.org/akicho8/lexical_search][Travis]]: [[https://travis-ci.org/akicho8/lexical_search.png]]
@@ -11,7 +8,7 @@
 
    モデルに以下を書いて
 
-   : scope :search, proc{|q|where(LexicalSearch::ArelBuilder.new(self, q).run)}
+   : scope :search, proc { |q| where(LexicalSearch::ArelBuilder.new(self, q).run) }
 
    検索
 
@@ -36,6 +33,7 @@
    | x<=1   | x カラムが 1 以下       |                    | x <= 1                             |
    | x<1    | x カラムが 1 未満       |                    | x < 1                              |
    | x>1    | x カラムが 1 より大きい |                    | x > 1                              |
+   |--------+-------------------------+--------------------+------------------------------------|
 
 ** 特殊検索(secureオプションがfalseのとき有効)
 
@@ -44,6 +42,7 @@
    |--------------+----------------------+--------------------------|
    | blank:x      | x カラムが空         | 空は NULL または空文字列 |
    | present:x    | x カラムが空ではない |                          |
+   |--------------+----------------------+--------------------------|
 
 ** AND OR () の関係
 
@@ -55,6 +54,7 @@
    | (a b) OR (c d)    | aとb または cとd を含む                          |
    | a (b OR c) d      | a b c を含む または a c d を含む                 |
    | a (b OR c) d -e   | a b c を含む または a c d を含む が e は含まない |
+   |-------------------+--------------------------------------------------|
 
 ** できないこと
 
