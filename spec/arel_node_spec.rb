@@ -10,6 +10,8 @@ ActiveRecord::Schema.define do
       t.string :name
       t.string :password
     end
+    create_table :other_articles do |t|
+    end
     create_table :users do |t|
     end
   end
